@@ -110,6 +110,37 @@ nav.tabs button.on{color:var(--text); border-top-color:var(--teal);}
 .empty p{font-size:13px; line-height:1.6; color:var(--dim); margin:0 0 20px;}
 .legend{display:flex; gap:16px; margin-top:8px; font:500 11px var(--mono); color:var(--dim);}
 .linkbtn{background:none; border:none; color:var(--dim); font:500 12px var(--sans); padding:0;}
+
+.topright{display:flex; align-items:flex-end; gap:12px;}
+.iconbtn{background:transparent; border:1px solid var(--line); color:var(--dim);
+  width:40px; height:40px; border-radius:10px; padding:0; display:grid; place-items:center;}
+.iconbtn svg{width:20px; height:20px; display:block;}
+
+#drawer{position:fixed; inset:0; z-index:50; visibility:hidden;}
+#drawer.open{visibility:visible;}
+#drawer .scrim{position:absolute; inset:0; background:rgba(8,7,6,.62);
+  opacity:0; transition:opacity .22s ease;}
+#drawer.open .scrim{opacity:1;}
+#drawer aside{position:absolute; top:0; right:0; bottom:0; width:min(86vw,360px);
+  background:var(--panel); border-left:1px solid var(--line);
+  transform:translateX(100%); transition:transform .22s ease;
+  display:flex; flex-direction:column;}
+#drawer.open aside{transform:none;}
+.dwhead{display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:calc(18px + env(safe-area-inset-top)) 16px 14px; border-bottom:1px solid var(--line);}
+.dwtitle{font:700 13px var(--mono); letter-spacing:.2em; text-transform:uppercase;}
+.dwbody{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:18px 16px calc(28px + env(safe-area-inset-bottom));
+  display:grid; gap:22px; align-content:start;}
+.sect > .eyebrow{display:block; margin-bottom:9px;}
+.sect .btn.wide + .btn.wide{margin-top:8px;}
+.stepper{display:flex; align-items:center; gap:10px;}
+.stepper .btn{width:46px; padding:12px 0; font:700 18px var(--mono); text-align:center;}
+.stepper .val{flex:1; text-align:center; font:700 22px var(--mono);}
+.kv{display:grid; gap:7px; font:500 12px var(--mono); color:var(--dim);}
+.kv div{display:flex; justify-content:space-between; gap:12px;}
+.kv span:last-child{color:var(--text);}
+.btn.danger{color:var(--red); border-color:rgba(212,85,60,.45);}
 @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
 </style>
 </head>
@@ -119,21 +150,45 @@ nav.tabs button.on{color:var(--text); border-top-color:var(--teal);}
     <div class="brand">MEU CAFÉ</div>
     <div class="sub">Registro de extração · moedor manual</div>
   </div>
-  <div>
-    <div class="count" id="cnt">0</div>
-    <div class="eyebrow">extrações</div>
+  <div class="topright">
+    <div>
+      <div class="count" id="cnt">0</div>
+      <div class="eyebrow">extrações</div>
+    </div>
+    <button class="iconbtn" id="gearBtn" data-a="setOpen" aria-label="Configurações" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </div>
 </header>
 <div id="flash"></div>
 <main id="app"></main>
 <nav class="tabs" id="tabs"></nav>
 
+<div id="drawer" aria-hidden="true">
+  <div class="scrim" data-a="setClose"></div>
+  <aside role="dialog" aria-modal="true" aria-label="Configurações">
+    <div class="dwhead">
+      <div class="dwtitle">Configurações</div>
+      <button class="iconbtn" id="dwClose" data-a="setClose" aria-label="Fechar configurações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dwbody" id="dwbody"></div>
+  </aside>
+</div>
+
 <script>
 "use strict";
 
 /* ----------------------------------------------------------- constantes */
 const KEY = "bancada-cafe-v2";
-const CPT = 12;            // cliques por volta do moedor
+const DEFAULTS = { cpt:12 };   // cliques por volta do moedor (padrão iCoffee M3 Pro)
+const CPT_MIN = 4, CPT_MAX = 60;
 const DIAL_MAX = 36;
 
 const METHODS = {
@@ -166,7 +221,7 @@ const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<"
 
 function mmss(s){ const m=Math.floor(s/60), r=Math.floor(s%60); return m+":"+String(r).padStart(2,"0"); }
 function turns(c){
-  const t=Math.floor(c/CPT), r=c%CPT;
+  const cpt=S.settings.cpt, t=Math.floor(c/cpt), r=c%cpt;
   if(!t) return r+" cliques a partir do zero";
   return t+" volta"+(t>1?"s":"")+" + "+r+" clique"+(r===1?"":"s");
 }
@@ -183,20 +238,29 @@ const S = {
   seconds:0, running:false, t0:0, tick:null,
   logging:false, rating:0, tags:[], note:"",
   form:{brand:"",name:"",roast:"media",process:"",roastDate:"",open:false},
-  fMethod:"todos", fBean:"todos"
+  fMethod:"todos", fBean:"todos",
+  settings:Object.assign({}, DEFAULTS), settingsOpen:false
 };
+
+/* aceita só o que for válido — backup antigo não tem settings, e arquivo
+   editado à mão não pode zerar o CPT e quebrar a divisão em voltas */
+function applySettings(o){
+  if(!o) return;
+  const c = Math.round(Number(o.cpt));
+  if(Number.isFinite(c)) S.settings.cpt = clamp(c, CPT_MIN, CPT_MAX);
+}
 
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ const d=JSON.parse(raw); S.beans=d.beans||[]; S.brews=d.brews||[]; }
+    if(raw){ const d=JSON.parse(raw); S.beans=d.beans||[]; S.brews=d.brews||[]; applySettings(d.settings); }
   }catch(e){}
   if(S.beans.length) S.beanId = S.beans[0].id;
   S.form.open = !S.beans.length;
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({beans:S.beans, brews:S.brews})); }
-  catch(e){ flash("Não consegui salvar neste navegador. Exporte um backup pela aba Histórico."); }
+  try{ localStorage.setItem(KEY, JSON.stringify({beans:S.beans, brews:S.brews, settings:S.settings})); }
+  catch(e){ flash("Não consegui salvar neste navegador. Exporte um backup em Configurações."); }
 }
 function flash(msg){
   $("#flash").innerHTML = '<div class="flash">'+esc(msg)+'</div>';
@@ -291,12 +355,16 @@ function dialSVG(clicks, acc, band){
     return "M "+a[0]+" "+a[1]+" A "+rad+" "+rad+" 0 "+big+" 1 "+b[0]+" "+b[1]; };
   let ticks="";
   for(let i=0;i<=DIAL_MAX;i++){
-    const maj = i%CPT===0, a=pt(i, r-(maj?15:8)), b=pt(i,r);
+    const maj = i%S.settings.cpt===0, a=pt(i, r-(maj?15:8)), b=pt(i,r);
     ticks += '<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+(maj?"var(--text)":"var(--line)")+'" stroke-width="'+(maj?2:1)+'" stroke-linecap="round"/>';
   }
   let labels="";
-  [0,12,24,36].forEach(v=>{ const p=pt(v,r-30);
-    labels += '<text x="'+p[0]+'" y="'+(p[1]+4)+'" text-anchor="middle" fill="var(--dim)" style="font:600 10px var(--mono)">'+(v?(v/12)+"v":"0")+'</text>'; });
+  /* uma marca por volta, mas rareia quando o moedor tem poucos cliques por
+     volta — senão o mostrador vira uma fileira de rótulos grudados */
+  const cpt = S.settings.cpt;
+  const step = cpt * Math.max(1, Math.ceil((DIAL_MAX/cpt)/4));
+  for(let v=0; v<=DIAL_MAX; v+=step){ const p=pt(v,r-30);
+    labels += '<text x="'+p[0]+'" y="'+(p[1]+4)+'" text-anchor="middle" fill="var(--dim)" style="font:600 10px var(--mono)">'+(v?(v/cpt)+"v":"0")+'</text>'; }
   const n=pt(clicks,r-4), i0=pt(clicks,34);
   return '<svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg">'
     + '<path d="'+arc(0,DIAL_MAX,r)+'" fill="none" stroke="var(--line)" stroke-width="1"/>'
@@ -535,12 +603,56 @@ function viewHistory(){
       }).join("")+'</div>';
 
   const backup = '<div class="panel"><div class="eyebrow">Backup</div>'
-    + '<p class="hint" style="margin:8px 0 12px">Os dados ficam só neste navegador. Exporte de vez em quando, e importe ao trocar de aparelho.</p>'
-    + '<div class="row"><button class="btn" style="flex:1" data-a="export">Exportar JSON</button>'
-    + '<button class="btn" style="flex:1" data-a="import">Importar</button></div>'
-    + '<input type="file" id="fileIn" accept="application/json,.json" style="display:none"></div>';
+    + '<p class="hint" style="margin:8px 0 12px">Os dados ficam só neste navegador. Exportar e importar agora fica em Configurações.</p>'
+    + '<button class="btn wide" data-a="setOpen">Abrir configurações</button></div>';
 
   return filters + charts + diary + backup;
+}
+
+/* ------------------------------------------------- gaveta de config */
+function viewSettings(){
+  const s = S.settings;
+  const moedor = '<div class="sect"><div class="eyebrow">Moedor</div>'
+    + '<p class="hint" style="margin:0 0 12px">Quantos cliques o seu moedor dá em uma volta completa. Muda só a leitura da sugestão em voltas — o número de cliques continua o mesmo.</p>'
+    + '<div class="stepper">'
+      + '<button class="btn" data-a="cpt:-1" aria-label="Um clique a menos por volta">−</button>'
+      + '<div class="val" id="cptVal">'+s.cpt+'</div>'
+      + '<button class="btn" data-a="cpt:1" aria-label="Um clique a mais por volta">+</button></div>'
+    + '<p class="hint" style="text-align:center">cliques por volta · padrão 12 (iCoffee M3 Pro)</p></div>';
+
+  const backup = '<div class="sect"><div class="eyebrow">Backup</div>'
+    + '<p class="hint" style="margin:0 0 12px">Seus registros ficam só neste navegador, neste aparelho. Exporte de vez em quando — é o que salva seus cafés se você trocar de celular ou limpar os dados do site.</p>'
+    + '<button class="btn wide" data-a="export">Exportar JSON</button>'
+    + '<button class="btn wide" data-a="import">Importar backup</button>'
+    + '<input type="file" id="fileIn" accept="application/json,.json" style="display:none">'
+    + '<p class="hint">Importar mescla com o que já está aqui, não sobrescreve.</p></div>';
+
+  const ultima = S.brews.length ? fmtDate(S.brews[0].date) : "—";
+  const neste = '<div class="sect"><div class="eyebrow">Neste aparelho</div>'
+    + '<div class="kv">'
+      + '<div><span>cafés</span><span>'+S.beans.length+'</span></div>'
+      + '<div><span>extrações</span><span>'+S.brews.length+'</span></div>'
+      + '<div><span>última</span><span>'+ultima+'</span></div>'
+    + '</div></div>';
+
+  const risco = '<div class="sect"><div class="eyebrow">Zona de risco</div>'
+    + '<p class="hint" style="margin:0 0 12px">Apaga todos os cafés e extrações deste aparelho. Não tem desfazer.</p>'
+    + '<button class="btn wide danger" data-a="wipe">Apagar todos os dados</button></div>';
+
+  return moedor + backup + neste + risco;
+}
+function renderSettings(){ const b=$("#dwbody"); if(b) b.innerHTML = viewSettings(); }
+function openSettings(){
+  S.settingsOpen = true; renderSettings();
+  const d=$("#drawer"); d.classList.add("open"); d.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+  const c=$("#dwClose"); if(c) c.focus();
+}
+function closeSettings(){
+  S.settingsOpen = false;
+  const d=$("#drawer"); d.classList.remove("open"); d.setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+  const g=$("#gearBtn"); if(g) g.focus();
 }
 
 /* ------------------------------------------------------------- render */
@@ -549,6 +661,7 @@ function render(toTop){
   $("#app").innerHTML = S.tab==="brew" ? viewBrew() : S.tab==="beans" ? viewBeans() : viewHistory();
   $("#tabs").innerHTML = [["brew","Preparar"],["beans","Cafés"],["history","Histórico"]]
     .map(([id,l])=>'<button data-a="tab:'+id+'" class="'+(S.tab===id?"on":"")+'">'+l+'</button>').join("");
+  if(S.settingsOpen) renderSettings();
   if(toTop) window.scrollTo({top:0});
 }
 
@@ -653,8 +766,27 @@ document.addEventListener("click", e=>{
   }
 
   if(act==="fmethod"){ S.fMethod=arg; render(); return; }
+
+  if(act==="setOpen"){ openSettings(); return; }
+  if(act==="setClose"){ closeSettings(); return; }
+  if(act==="cpt"){
+    S.settings.cpt = clamp(S.settings.cpt + Number(arg), CPT_MIN, CPT_MAX);
+    save(); render();   // o mostrador e o texto em voltas dependem do CPT
+    return;
+  }
+  if(act==="wipe"){
+    if(!confirm("Apagar todos os cafés e extrações deste aparelho? Não tem desfazer — exporte um backup antes se quiser guardar.")) return;
+    S.beans=[]; S.brews=[]; S.beanId=null;
+    S.form={brand:"",name:"",roast:"media",process:"",roastDate:"",open:true};
+    S.fMethod="todos"; S.fBean="todos"; S.tab="brew";
+    stopTimer(); S.seconds=0; S.logging=false; S.rating=0; S.tags=[]; S.note="";
+    save(); closeSettings(); render(true);
+    flash("Dados apagados.");
+    return;
+  }
+
   if(act==="export"){
-    const blob=new Blob([JSON.stringify({beans:S.beans,brews:S.brews},null,2)],{type:"application/json"});
+    const blob=new Blob([JSON.stringify({beans:S.beans,brews:S.brews,settings:S.settings},null,2)],{type:"application/json"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
     a.download="meu-cafe-"+new Date().toISOString().slice(0,10)+".json";
@@ -677,6 +809,11 @@ document.addEventListener("change", e=>{
         d.beans.forEach(b=>{ if(!ids.has(b.id)) S.beans.push(b); });
         const bids=new Set(S.brews.map(b=>b.id));
         d.brews.forEach(b=>{ if(!bids.has(b.id)) S.brews.push(b); });
+        applySettings(d.settings);
+        /* importar num aparelho vazio precisa escolher um café, senão a aba
+           Preparar fica sem nada selecionado */
+        if(!S.beanId && S.beans.length){ S.beanId=S.beans[0].id; applySuggestion(); }
+        if(S.beans.length) S.form.open=false;
         save(); render(); flash("Backup importado.");
       }catch(err){ flash("Arquivo inválido."); }
     };
@@ -708,6 +845,10 @@ document.addEventListener("input", e=>{
   else if(id==="nName") S.form.name=v;
   else if(id==="nProc") S.form.process=v;
   else if(id==="nDate") S.form.roastDate=v;
+});
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && S.settingsOpen) closeSettings();
 });
 
 /* --------------------------------------------------------------- boot */

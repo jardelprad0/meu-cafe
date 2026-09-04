@@ -8,8 +8,21 @@ em cliques de moedor manual (12 cliques por volta, padrão do iCoffee M3 Pro).
 Métodos: V60, café passado, prensa francesa e espresso 15 bar.
 
 Não tem servidor, não tem conta, não tem rastreamento. Os dados ficam no
-`localStorage` do próprio navegador, e há exportação/importação em JSON na aba
-Histórico para backup e troca de aparelho.
+`localStorage` do próprio navegador, e há exportação/importação em JSON em
+**Configurações** para backup e troca de aparelho.
+
+## Configurações
+
+A engrenagem no topo abre uma gaveta lateral com:
+
+- **Moedor** — cliques por volta do seu moedor (4 a 60, padrão 12). Muda a
+  leitura da sugestão em voltas e as marcas do mostrador; o número de cliques
+  em si não muda.
+- **Backup** — exportar e importar JSON.
+- **Neste aparelho** — quantos cafés e extrações estão salvos.
+- **Zona de risco** — apagar tudo, com confirmação.
+
+A preferência do moedor vai junto no `localStorage` e no arquivo exportado.
 
 ## Arquivos
 
@@ -43,13 +56,22 @@ No Android é o mesmo caminho pelo Chrome: menu **⋮ › Instalar app**.
 - Apagar os dados do site, "limpar histórico e dados" ou desinstalar remove tudo.
 - iOS pode descartar dados de sites não usados por várias semanas; instalar na
   tela de início reduz esse risco, mas o backup é o que garante.
-- Use **Histórico › Exportar JSON** de vez em quando. Para restaurar ou migrar,
-  use **Importar** — ele mescla, não sobrescreve.
+- Use **Configurações › Exportar JSON** de vez em quando. Para restaurar ou
+  migrar, use **Importar** — ele mescla, não sobrescreve.
 
 ## Ajustar as referências de moagem
 
 As faixas iniciais estão no topo do `<script>` em `index.html`, no objeto
 `METHODS`. Cada método tem `baseClicks` (ponto de partida), `min` e `max` (a
 faixa destacada no mostrador), `baseOutput`, `baseRatio` e `target` (tempo alvo em
-segundos). Se o seu moedor tiver outro número de cliques por volta, mude a
-constante `CPT`.
+segundos).
+
+Os cliques por volta do moedor não ficam mais no código — são ajustados em
+**Configurações › Moedor**. O valor inicial está em `DEFAULTS.cpt`.
+
+## Publicar uma mudança
+
+O `sw.js` serve tudo do cache primeiro, então **toda mudança no `index.html`
+precisa de um bump na constante `CACHE`** (`meu-cafe-v2` → `v3`, e assim por
+diante). Sem isso o app já instalado continua abrindo a versão antiga
+indefinidamente. Depois é só `git push` para `main`.
