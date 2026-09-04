@@ -1,7 +1,7 @@
 /* Bump a versão a cada mudança em index.html — o fetch abaixo é cache-first,
    então sem trocar o nome do cache o app instalado continua servindo a versão
    antiga para sempre. */
-const CACHE = "meu-cafe-v2";
+const CACHE = "meu-cafe-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-180.png"];
 
 self.addEventListener("install", e => {

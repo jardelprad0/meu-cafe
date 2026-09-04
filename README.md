@@ -19,19 +19,41 @@ A engrenagem no topo abre uma gaveta lateral com:
   leitura da sugestão em voltas e as marcas do mostrador; o número de cliques
   em si não muda.
 - **Backup** — exportar e importar JSON.
-- **Neste aparelho** — quantos cafés e extrações estão salvos.
+- **Neste aparelho** — cafés, extrações, fotos e espaço ocupado.
 - **Zona de risco** — apagar tudo, com confirmação.
 
 A preferência do moedor vai junto no `localStorage` e no arquivo exportado.
 
+## Foto do pacote
+
+Cada café aceita uma foto do pacote, tirada na hora ou escolhida da galeria —
+pelo formulário de cadastro ou pelo botão na lista, para cafés já cadastrados.
+
+A imagem é reduzida no próprio navegador antes de salvar: no máximo 640 px no
+lado maior, JPEG a 72%, o que costuma dar uns 60 KB por foto. A orientação do
+EXIF é resolvida via `createImageBitmap`, senão foto de iPhone entra deitada.
+
+O `localStorage` guarda por volta de 5 MB no total. Se uma foto não couber, o
+app desfaz a operação e avisa em vez de fingir que salvou. As fotos vão junto no
+JSON exportado, então o arquivo de backup cresce com elas.
+
 ## Arquivos
 
 | arquivo | função |
-|---|---|
+| --- | --- |
 | `index.html` | o app inteiro (HTML, CSS e JS, sem dependências externas) |
 | `manifest.webmanifest` | metadados para instalar como app |
 | `sw.js` | service worker: faz o app abrir mesmo sem internet |
 | `icon-*.png` | ícones |
+
+## Layout
+
+Uma coluna de 560 px (`--shell`) centralizada, com cabeçalho, abas e conteúdo
+alinhados na mesma largura. Até 819 px de tela as abas ficam fixas embaixo, ao
+alcance do polegar; de 820 px para cima elas sobem para o topo, logo abaixo do
+cabeçalho, e a barra fixa some. O mostrador de moagem tem teto de 340 px para
+não virar um relógio de parede no desktop, e encolhe em telas baixas (celular
+deitado). Testado de 320 px a 1600 px, sem rolagem horizontal.
 
 ## Publicação
 
