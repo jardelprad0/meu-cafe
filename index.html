@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bancada — registro de café</title>
+<meta name="theme-color" content="#100E0C">
+<meta name="description" content="Registro de extração de café com sugestão de moagem em cliques para moedor manual.">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bancada">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png">
+<style>
+:root{
+  --ink:#100E0C; --panel:#191512; --panel2:#221D18; --line:#332B24;
+  --text:#F2EADD; --dim:#8E8375;
+  --teal:#3FB8A0; --amber:#F2A413; --blue:#7FB2E5; --violet:#C793E0; --red:#D4553C;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; background:var(--ink); color:var(--text); font-family:var(--sans);
+  -webkit-text-size-adjust:100%;}
+body{padding-bottom:calc(96px + env(safe-area-inset-bottom));}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:var(--sans); font-size:16px;}
+
+header.top{padding:calc(22px + env(safe-area-inset-top)) 18px 14px; border-bottom:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:flex-end;}
+.brand{font:700 22px var(--mono); letter-spacing:.24em;}
+.sub{font-size:12px; color:var(--dim); margin-top:4px;}
+.count{font:700 20px var(--mono); color:var(--dim); text-align:right;}
+
+main{padding:16px; max-width:560px; margin:0 auto; display:grid; gap:14px;}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+.panel.flush{padding:0; overflow:hidden;}
+.eyebrow{font:600 10px/1 var(--mono); letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
+.row{display:flex; gap:12px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.field{display:block; margin-bottom:12px;}
+.field > .lab{font:600 10px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-bottom:7px;}
+.hint{font-size:11px; line-height:1.4; color:var(--dim); margin-top:5px;}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--line);
+  border-radius:9px; padding:11px 12px; outline:none; appearance:none;}
+textarea{resize:vertical;}
+:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
+.btn{border:1px solid var(--line); background:transparent; color:var(--text);
+  font:600 13px/1 var(--sans); padding:12px 16px; border-radius:10px;}
+.btn.solid{color:var(--ink); border-color:transparent;}
+.btn.quiet{border-color:transparent; color:var(--dim);}
+.btn[disabled]{opacity:.4;}
+.btn.wide{width:100%;}
+
+.seg{display:flex; flex-wrap:wrap; gap:6px; background:var(--panel2); border:1px solid var(--line);
+  border-radius:11px; padding:4px;}
+.seg button{flex:1 1 40%; min-width:70px; padding:10px 6px; border:none; border-radius:8px;
+  background:transparent; color:var(--dim); font:600 12px var(--sans);}
+.seg button.on{color:var(--ink);}
+
+.dialwrap svg{width:100%; display:block;}
+.dialrow{display:flex; align-items:center; gap:10px; margin-top:-8px;}
+.dialrow .btn{width:46px; padding:12px 0; font:700 18px var(--mono); text-align:center;}
+.dialnote{flex:1; text-align:center; font-size:12px; color:var(--dim);}
+.zero{font-size:11px; line-height:1.5; color:var(--dim); margin-top:8px; text-align:center;}
+.why{margin-top:16px; padding:12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px;}
+.why p{margin:0; font-size:12px; line-height:1.55; color:var(--dim);}
+.why p:first-child{color:var(--text);}
+.why p + p{margin-top:5px;}
+
+.big{font:700 24px var(--mono); margin-top:4px;}
+.clock{font:700 44px var(--mono); letter-spacing:-.04em;}
+.stages{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.stage{display:flex; gap:12px; padding:10px 12px; background:var(--panel);}
+.stage.on{background:var(--panel2);}
+.stage .t{font:600 12px var(--mono); color:var(--dim); width:42px;}
+.stage .l{font:600 13px var(--sans); color:var(--dim);}
+.stage .d{font-size:12px; color:var(--dim); margin-top:2px;}
+.stage.on .t{color:var(--acc);} .stage.on .l{color:var(--text);}
+
+.rate{display:flex; gap:8px;}
+.rate button{flex:1; height:46px; border-radius:10px; border:1px solid var(--line);
+  background:transparent; color:var(--dim); font:700 15px var(--mono);}
+.tags{display:flex; flex-wrap:wrap; gap:7px;}
+.tags button{padding:8px 12px; border-radius:999px; border:1px solid var(--line);
+  background:transparent; color:var(--dim); font:600 12px var(--sans);}
+
+.entry{padding:16px; border-bottom:1px solid var(--line);}
+.entry:last-child{border-bottom:none;}
+.entry .head{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+.entry .meta{font:500 12px var(--mono); color:var(--dim); margin-top:6px; line-height:1.5;}
+.chip{font:600 11px var(--sans); padding:4px 9px; border-radius:999px; border:1px solid var(--line);}
+.note{font-size:12px; line-height:1.5; color:var(--dim); margin-top:8px;}
+
+nav.tabs{position:fixed; left:0; right:0; bottom:0; display:flex;
+  background:rgba(16,14,12,.94); border-top:1px solid var(--line);
+  backdrop-filter:blur(8px); padding:8px 8px calc(14px + env(safe-area-inset-bottom));}
+nav.tabs button{flex:1; background:none; border:none; border-top:2px solid transparent;
+  padding:10px 0; color:var(--dim); font:600 11px var(--mono); letter-spacing:.16em; text-transform:uppercase;}
+nav.tabs button.on{color:var(--text); border-top-color:var(--teal);}
+
+.flash{margin:12px 16px 0; padding:10px 12px; border-radius:10px; background:var(--panel2);
+  border:1px solid var(--line); font:500 12px var(--sans);}
+.empty{text-align:center; padding:32px;}
+.empty h2{font:600 16px var(--sans); margin:0 0 8px;}
+.empty p{font-size:13px; line-height:1.6; color:var(--dim); margin:0 0 20px;}
+.legend{display:flex; gap:16px; margin-top:8px; font:500 11px var(--mono); color:var(--dim);}
+.linkbtn{background:none; border:none; color:var(--dim); font:500 12px var(--sans); padding:0;}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <div class="brand">BANCADA</div>
+    <div class="sub">Registro de extração · moedor manual</div>
+  </div>
+  <div>
+    <div class="count" id="cnt">0</div>
+    <div class="eyebrow">extrações</div>
+  </div>
+</header>
+<div id="flash"></div>
+<main id="app"></main>
+<nav class="tabs" id="tabs"></nav>
+
+<script>
+"use strict";
+
+/* ----------------------------------------------------------- constantes */
+const KEY = "bancada-cafe-v2";
+const CPT = 12;            // cliques por volta do moedor
+const DIAL_MAX = 36;
+
+const METHODS = {
+  v60:      {id:"v60",      label:"V60",             short:"V60",      acc:"var(--teal)",   unit:"Água",       baseClicks:20, min:16, max:24, baseOutput:240, baseRatio:16, target:[150,180]},
+  coado:    {id:"coado",    label:"Café passado",    short:"Passado",  acc:"var(--blue)",   unit:"Água",       baseClicks:22, min:18, max:26, baseOutput:480, baseRatio:12, target:[180,240]},
+  prensa:   {id:"prensa",   label:"Prensa francesa", short:"Prensa",   acc:"var(--violet)", unit:"Água",       baseClicks:27, min:24, max:30, baseOutput:450, baseRatio:15, target:[240,260]},
+  espresso: {id:"espresso", label:"Espresso 15 bar", short:"Espresso", acc:"var(--amber)",  unit:"Na xícara",  baseClicks:8,  min:6,  max:10, baseOutput:36,  baseRatio:2,  target:[25,30]}
+};
+const ROASTS = [{id:"clara",label:"Clara",adj:-1},{id:"media",label:"Média",adj:0},{id:"escura",label:"Escura",adj:1}];
+const TAGS = [
+  {id:"doce",label:"Doce",dir:"ok"},{id:"frutado",label:"Frutado",dir:"ok"},
+  {id:"floral",label:"Floral",dir:"ok"},{id:"caramelo",label:"Caramelo",dir:"ok"},
+  {id:"chocolate",label:"Achocolatado",dir:"ok"},{id:"encorpado",label:"Encorpado",dir:"ok"},
+  {id:"limpo",label:"Limpo",dir:"ok"},
+  {id:"amargo",label:"Amargo",dir:"coarser"},{id:"adstringente",label:"Adstringente",dir:"coarser"},
+  {id:"queimado",label:"Queimado",dir:"coarser"},{id:"seco",label:"Seco no final",dir:"coarser"},
+  {id:"azedo",label:"Azedo",dir:"finer"},{id:"aguado",label:"Aguado",dir:"finer"},
+  {id:"fraco",label:"Fraco",dir:"finer"},{id:"salgado",label:"Salgado",dir:"finer"}
+];
+const TAGMAP = Object.fromEntries(TAGS.map(t=>[t.id,t]));
+const tagColor = d => d==="ok" ? "var(--teal)" : d==="coarser" ? "var(--red)" : "var(--amber)";
+
+/* ------------------------------------------------------------ utilidades */
+const $  = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2,10);
+const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
+const r1 = n => Math.round(n*10)/10;
+const num = (v,f=0) => (v===""||v===null||v===undefined||isNaN(v)) ? f : Number(v);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function mmss(s){ const m=Math.floor(s/60), r=Math.floor(s%60); return m+":"+String(r).padStart(2,"0"); }
+function turns(c){
+  const t=Math.floor(c/CPT), r=c%CPT;
+  if(!t) return r+" cliques a partir do zero";
+  return t+" volta"+(t>1?"s":"")+" + "+r+" clique"+(r===1?"":"s");
+}
+function fmtDate(iso){ return new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}); }
+function daysSince(d){ if(!d) return null; return Math.floor((Date.now()-new Date(d+"T12:00:00").getTime())/86400000); }
+function beanLabel(b){ return !b ? "—" : (b.name ? b.brand+" · "+b.name : b.brand); }
+function tempFor(r){ return r==="clara" ? 94 : r==="escura" ? 89 : 92; }
+
+/* --------------------------------------------------------------- estado */
+const S = {
+  tab:"brew", beans:[], brews:[],
+  methodId:"v60", beanId:null,
+  clicks:20, output:240, dose:15, ratio:16,
+  seconds:0, running:false, t0:0, tick:null,
+  logging:false, rating:0, tags:[], note:"",
+  form:{brand:"",name:"",roast:"media",process:"",roastDate:"",open:false},
+  fMethod:"todos", fBean:"todos"
+};
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ const d=JSON.parse(raw); S.beans=d.beans||[]; S.brews=d.brews||[]; }
+  }catch(e){}
+  if(S.beans.length) S.beanId = S.beans[0].id;
+  S.form.open = !S.beans.length;
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify({beans:S.beans, brews:S.brews})); }
+  catch(e){ flash("Não consegui salvar neste navegador. Exporte um backup pela aba Histórico."); }
+}
+function flash(msg){
+  $("#flash").innerHTML = '<div class="flash">'+esc(msg)+'</div>';
+  setTimeout(()=>{ $("#flash").innerHTML=""; }, 3800);
+}
+
+/* ---------------------------------------------------------- a sugestão */
+function feedbackDelta(b, m){
+  const tg = b.tags||[];
+  const coarse = tg.filter(t=>TAGMAP[t] && TAGMAP[t].dir==="coarser").length;
+  const fine   = tg.filter(t=>TAGMAP[t] && TAGMAP[t].dir==="finer").length;
+  if(coarse>fine) return {d:1, why:"A última saiu sobre-extraída (amarga/adstringente)."};
+  if(fine>coarse) return {d:-1, why:"A última saiu sub-extraída (azeda/aguada)."};
+  const lo=m.target[0], hi=m.target[1];
+  if(b.timeS){
+    if(b.timeS > hi*1.25) return {d:1, why:"A última levou "+mmss(b.timeS)+", acima do alvo."};
+    if(b.timeS < lo*0.8)  return {d:-1, why:"A última levou "+mmss(b.timeS)+", abaixo do alvo."};
+  }
+  if(b.rating<=2) return {d:1, why:"Nota baixa sem pista de sabor: abrindo um pouco a moagem para testar."};
+  return {d:0, why:null};
+}
+
+function suggest(bean, methodId){
+  const m = METHODS[methodId];
+  const hist = S.brews.filter(b=>bean && b.beanId===bean.id && b.method===methodId)
+                      .sort((a,b)=> new Date(a.date)-new Date(b.date));
+  let clicks=m.baseClicks, output=m.baseOutput, ratio=m.baseRatio, dose=r1(m.baseOutput/m.baseRatio);
+  const why=[];
+  const roast = ROASTS.find(r=>r.id===(bean&&bean.roast));
+  if(roast && roast.adj){
+    clicks += roast.adj;
+    why.push(roast.adj<0 ? "Torra clara: 1 clique mais fino que o padrão."
+                         : "Torra escura: 1 clique mais grosso que o padrão.");
+  }
+  if(!hist.length){
+    why.unshift("Primeira extração deste café no método "+m.short+". Ponto de partida da faixa do moedor.");
+    return {clicks:clamp(clicks,1,DIAL_MAX), output, dose, ratio, why};
+  }
+  const best = hist.filter(b=>b.rating>=4)
+                   .sort((a,b)=> b.rating-a.rating || new Date(b.date)-new Date(a.date))[0];
+  const last = hist[hist.length-1];
+  why.length = 0;
+  if(best){
+    clicks=best.clicks; output=best.outputG; dose=best.doseG; ratio=best.ratio||ratio;
+    why.push("Repetindo sua melhor extração deste café (nota "+best.rating+", "+fmtDate(best.date)+").");
+    if(last.id!==best.id && last.rating<best.rating)
+      why.push("A última ficou pior que essa, então voltamos para a receita que funcionou.");
+  }else{
+    clicks=last.clicks; output=last.outputG; dose=last.doseG; ratio=last.ratio||ratio;
+    const fb = feedbackDelta(last,m);
+    clicks += fb.d;
+    why.push("Partindo da última ("+last.clicks+" cliques, nota "+last.rating+").");
+    why.push(fb.why ? fb.why+" "+(fb.d>0?"+":"")+fb.d+" clique."
+                    : "Sem sinal claro de sabor: mantendo a moagem e variando só a água se quiser.");
+  }
+  return {clicks:clamp(Math.round(clicks),1,DIAL_MAX), output, dose, ratio, why};
+}
+
+function stagesFor(methodId, output, dose){
+  const m = METHODS[methodId], o = Math.round(output), bloom = Math.round(dose*2);
+  if(methodId==="espresso") return [
+    {t:0,  l:"Trave o portafiltro e ligue", d:"Alvo: "+o+" g na xícara"},
+    {t:8,  l:"Primeiras gotas",             d:"Devem aparecer entre 6 s e 10 s"},
+    {t:m.target[0], l:"Janela de corte",    d:"Corte entre "+m.target[0]+" s e "+m.target[1]+" s"}
+  ];
+  if(methodId==="prensa") return [
+    {t:0,  l:"Despeje toda a água", d:o+" g de uma vez, mexa levemente"},
+    {t:30, l:"Tampe",               d:"Êmbolo levantado, não mexa mais"},
+    {t:m.target[0], l:"Pressione o êmbolo", d:"Lento e constante, 15–20 s"}
+  ];
+  if(methodId==="coado") return [
+    {t:0,  l:"Pré-infusão", d:bloom+" g de água, espere hidratar"},
+    {t:30, l:"2º despejo",  d:"Complete até "+Math.round(o*0.6)+" g"},
+    {t:70, l:"3º despejo",  d:"Complete até "+o+" g"},
+    {t:m.target[0], l:"Fim da coagem", d:"O leito deve terminar de escoar por aqui"}
+  ];
+  return [
+    {t:0,  l:"Bloom",      d:bloom+" g de água, saturar tudo"},
+    {t:45, l:"2º despejo", d:"Suba até "+Math.round(o*0.6)+" g em espiral"},
+    {t:90, l:"3º despejo", d:"Complete até "+o+" g"},
+    {t:150,l:"Drawdown",   d:"Alvo de leito seco entre 2:30 e 3:00"}
+  ];
+}
+
+/* ------------------------------------------------------- o dial (SVG) */
+function dialSVG(clicks, acc, band){
+  const cx=130, cy=122, r=96, a0=135, sweep=270;
+  const ang = v => ((a0 + (clamp(v,0,DIAL_MAX)/DIAL_MAX)*sweep) * Math.PI)/180;
+  const pt  = (v,rad) => [cx+rad*Math.cos(ang(v)), cy+rad*Math.sin(ang(v))];
+  const arc = (f,t,rad) => { const a=pt(f,rad), b=pt(t,rad);
+    const big = ((t-f)/DIAL_MAX)*sweep > 180 ? 1 : 0;
+    return "M "+a[0]+" "+a[1]+" A "+rad+" "+rad+" 0 "+big+" 1 "+b[0]+" "+b[1]; };
+  let ticks="";
+  for(let i=0;i<=DIAL_MAX;i++){
+    const maj = i%CPT===0, a=pt(i, r-(maj?15:8)), b=pt(i,r);
+    ticks += '<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+(maj?"var(--text)":"var(--line)")+'" stroke-width="'+(maj?2:1)+'" stroke-linecap="round"/>';
+  }
+  let labels="";
+  [0,12,24,36].forEach(v=>{ const p=pt(v,r-30);
+    labels += '<text x="'+p[0]+'" y="'+(p[1]+4)+'" text-anchor="middle" fill="var(--dim)" style="font:600 10px var(--mono)">'+(v?(v/12)+"v":"0")+'</text>'; });
+  const n=pt(clicks,r-4), i0=pt(clicks,34);
+  return '<svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg">'
+    + '<path d="'+arc(0,DIAL_MAX,r)+'" fill="none" stroke="var(--line)" stroke-width="1"/>'
+    + '<path d="'+arc(band[0],band[1],r-22)+'" fill="none" stroke="'+acc+'" stroke-width="3" stroke-opacity=".32" stroke-linecap="round"/>'
+    + ticks + labels
+    + '<line x1="'+i0[0]+'" y1="'+i0[1]+'" x2="'+n[0]+'" y2="'+n[1]+'" stroke="'+acc+'" stroke-width="2.5" stroke-linecap="round"/>'
+    + '<circle cx="'+n[0]+'" cy="'+n[1]+'" r="6.5" fill="'+acc+'"/>'
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="var(--line)"/>'
+    + '<text x="'+cx+'" y="'+(cy-14)+'" text-anchor="middle" fill="var(--text)" style="font:700 54px var(--mono); letter-spacing:-.03em">'+clicks+'</text>'
+    + '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" fill="var(--dim)" style="font:600 10px var(--mono); letter-spacing:.2em">CLIQUES</text>'
+    + '</svg>';
+}
+
+/* ----------------------------------------------------- gráficos (SVG) */
+function lineChart(rows){
+  const W=320,H=210, L=24,R=26,T=10,B=26;
+  if(!rows.length) return "";
+  const iw=W-L-R, ih=H-T-B;
+  const xs = i => rows.length===1 ? L+iw/2 : L + i*(iw/(rows.length-1));
+  const yN = v => T + ih - (v/5)*ih;
+  const yC = v => T + ih - (clamp(v,0,DIAL_MAX)/DIAL_MAX)*ih;
+  let g="";
+  for(let v=0;v<=5;v++){
+    const y=yN(v);
+    g += '<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" stroke="var(--line)" stroke-dasharray="2 4"/>'
+       + '<text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" fill="var(--dim)" style="font:500 10px var(--mono)">'+v+'</text>';
+  }
+  [0,12,24,36].forEach(v=>{ const y=yC(v);
+    g += '<text x="'+(W-R+6)+'" y="'+(y+4)+'" fill="var(--dim)" style="font:500 10px var(--mono)">'+v+'</text>'; });
+  const pN = rows.map((r,i)=> xs(i)+","+yN(r.nota)).join(" ");
+  const pC = rows.map((r,i)=> xs(i)+","+yC(r.cliques)).join(" ");
+  let dots = rows.map((r,i)=> '<circle cx="'+xs(i)+'" cy="'+yN(r.nota)+'" r="3.2" fill="var(--teal)"/>').join("");
+  let xl="";
+  const marks = rows.length<=4 ? rows.map((_,i)=>i) : [0, Math.floor((rows.length-1)/2), rows.length-1];
+  marks.forEach(i=>{ xl += '<text x="'+xs(i)+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--dim)" style="font:500 10px var(--mono)">'+rows[i].label+'</text>'; });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%" xmlns="http://www.w3.org/2000/svg">'+g
+    + '<polyline points="'+pC+'" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 3"/>'
+    + '<polyline points="'+pN+'" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linejoin="round"/>'
+    + dots + xl + '</svg>';
+}
+
+function scatterChart(rows){
+  const W=320,H=200, L=24,R=12,T=10,B=26;
+  const iw=W-L-R, ih=H-T-B;
+  const xs = v => L + (clamp(v,0,DIAL_MAX)/DIAL_MAX)*iw;
+  const ys = v => T + ih - (v/5)*ih;
+  let g="";
+  for(let v=0;v<=5;v++){ const y=ys(v);
+    g += '<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" stroke="var(--line)" stroke-dasharray="2 4"/>'
+       + '<text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" fill="var(--dim)" style="font:500 10px var(--mono)">'+v+'</text>'; }
+  [0,12,24,36].forEach(v=>{ g += '<text x="'+xs(v)+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--dim)" style="font:500 10px var(--mono)">'+v+'</text>'; });
+  const pts = rows.map(r=> '<circle cx="'+xs(r.x)+'" cy="'+ys(r.y)+'" r="5" fill="'+r.c+'" fill-opacity=".85"/>').join("");
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%" xmlns="http://www.w3.org/2000/svg">'+g+pts+'</svg>';
+}
+
+/* --------------------------------------------------------------- views */
+function segHTML(opts, val, act){
+  return '<div class="seg">'+opts.map(o=>{
+    const on = o.id===val;
+    return '<button data-a="'+act+':'+o.id+'" class="'+(on?"on":"")+'"'
+      + (on ? ' style="background:'+(o.acc||"var(--teal)")+'"' : '')+'>'+esc(o.label)+'</button>';
+  }).join("")+'</div>';
+}
+
+function viewBrew(){
+  if(!S.beans.length){
+    return '<div class="panel empty"><h2>Nenhum café cadastrado</h2>'
+      + '<p>Cadastre o pacote que está na bancada — marca, torra e data de torrefação. A sugestão de moagem parte daí.</p>'
+      + '<button class="btn solid" style="background:var(--teal)" data-a="tab:beans">Cadastrar café</button></div>';
+  }
+  const bean = S.beans.find(b=>b.id===S.beanId) || S.beans[0];
+  const m = METHODS[S.methodId];
+  const sug = suggest(bean, S.methodId);
+  const off = S.clicks - sug.clicks;
+  const d = daysSince(bean.roastDate);
+  const dayNote = d===null ? "" :
+    '<div style="font-size:12px;color:'+(d>45?"var(--red)":"var(--dim)")+'">'+d+' dias de torra'
+    + (d>45 ? " — grão velho, espere menos doçura" : d<5 ? " — ainda desgaseificando" : "")+'</div>';
+
+  return ''
+  + '<div class="panel">'
+    + '<label class="field"><div class="lab">Café</div>'
+      + '<select id="beanSel">'+S.beans.map(b=>'<option value="'+b.id+'"'+(b.id===bean.id?" selected":"")+'>'+esc(beanLabel(b))+'</option>').join("")+'</select></label>'
+    + '<div class="field"><div class="lab">Método</div>'
+      + segHTML(Object.values(METHODS).map(x=>({id:x.id,label:x.short,acc:x.acc})), S.methodId, "method")+'</div>'
+    + dayNote
+  + '</div>'
+
+  + '<div class="panel">'
+    + '<div class="row" style="justify-content:space-between;margin-bottom:4px">'
+      + '<span class="eyebrow" style="color:'+m.acc+'">Moagem sugerida</span>'
+      + '<span class="eyebrow" id="offLab">'+(off? (off>0?"+"+off:off)+" do sugerido" : "")+'</span></div>'
+    + '<div class="dialwrap" id="dial">'+dialSVG(S.clicks, m.acc, [m.min,m.max])+'</div>'
+    + '<div class="dialrow"><button class="btn" data-a="clicks:-1">−</button>'
+      + '<div class="dialnote" id="turns">'+turns(S.clicks)+'</div>'
+      + '<button class="btn" data-a="clicks:1">+</button></div>'
+    + '<div class="zero">Feche o regulador até travar, esse é o zero. Depois conte os cliques abrindo.</div>'
+    + '<div class="why">'+sug.why.map(w=>'<p>'+esc(w)+'</p>').join("")+'</div>'
+  + '</div>'
+
+  + '<div class="panel">'
+    + '<label class="field"><div class="lab">'+m.unit+' (g)</div>'
+      + '<input type="number" inputmode="decimal" step="5" id="fOut" value="'+S.output+'">'
+      + '<div class="hint">Diga quanto você quer no final — a dose é sugerida a partir daqui.</div></label>'
+    + '<div class="grid2">'
+      + '<label class="field"><div class="lab">Dose (g)</div><input type="number" inputmode="decimal" step="0.5" id="fDose" value="'+S.dose+'"></label>'
+      + '<label class="field"><div class="lab">Proporção 1:x</div><input type="number" inputmode="decimal" step="0.5" id="fRatio" value="'+S.ratio+'"></label>'
+    + '</div>'
+    + '<div class="row" style="gap:20px">'
+      + (S.methodId!=="espresso" ? '<div><div class="eyebrow">Temperatura</div><div class="big">'+tempFor(bean.roast)+' °C</div></div>' : '')
+      + '<div><div class="eyebrow">Tempo alvo</div><div class="big">'
+        + (S.methodId==="espresso" ? m.target[0]+"–"+m.target[1]+"s" : mmss(m.target[0]))+'</div></div>'
+    + '</div>'
+  + '</div>'
+
+  + '<div class="panel" style="--acc:'+m.acc+'">'
+    + '<div class="eyebrow" style="color:'+m.acc+'">Extração</div>'
+    + '<div class="row" style="align-items:baseline;gap:12px;margin-top:12px">'
+      + '<div class="clock" id="clock">'+mmss(S.seconds)+'</div>'
+      + '<div style="font-size:12px;color:var(--dim)">alvo '
+        + (S.methodId==="espresso" ? m.target[0]+"–"+m.target[1]+" s" : mmss(m.target[0])+"–"+mmss(m.target[1]))+'</div></div>'
+    + '<div class="row" style="margin:12px 0 16px">'
+      + '<button class="btn solid" style="flex:1;background:'+m.acc+'" data-a="timer">'
+        + (S.running?"Pausar":S.seconds>0?"Continuar":"Começar extração")+'</button>'
+      + '<button class="btn" data-a="reset"'+(S.seconds?"":" disabled")+'>Zerar</button></div>'
+    + '<div class="stages" id="stages">'+stagesHTML()+'</div>'
+    + '<div style="height:14px"></div>'
+    + '<button class="btn wide '+(S.logging?"":"solid")+'" style="'+(S.logging?"":"background:"+m.acc)+'" data-a="log">'
+      + (S.logging?"Fechar avaliação":"Avaliar esta xícara")+'</button>'
+  + '</div>'
+
+  + (S.logging ? viewLog(m) : "");
+}
+
+function stagesHTML(){
+  const st = stagesFor(S.methodId, num(S.output), num(S.dose));
+  let cur = 0; st.forEach((s,i)=>{ if(S.seconds>=s.t) cur=i; });
+  return st.map((s,i)=>'<div class="stage'+(i===cur&&S.seconds>0?" on":"")+'">'
+    + '<div class="t">'+mmss(s.t)+'</div><div style="flex:1"><div class="l">'+esc(s.l)+'</div>'
+    + '<div class="d">'+esc(s.d)+'</div></div></div>').join("");
+}
+
+function viewLog(m){
+  return '<div class="panel">'
+    + '<div class="field"><div class="lab">Nota da xícara · '+mmss(Math.round(S.seconds))+' no relógio</div>'
+      + '<div class="rate" id="rate">'+[1,2,3,4,5].map(n=>'<button data-a="rate:'+n+'" data-n="'+n+'"'
+        + (S.rating>=n?' class="on" style="background:'+m.acc+';border-color:'+m.acc+';color:var(--ink)"':'')+'>'+n+'</button>').join("")+'</div></div>'
+    + '<div class="field"><div class="lab">O que você sentiu</div>'
+      + '<div class="tags" id="tagbox">'+TAGS.map(t=>{
+          const on=S.tags.indexOf(t.id)>=0, c=tagColor(t.dir);
+          return '<button data-a="tag:'+t.id+'" data-c="'+c+'"'+(on?' class="on" style="background:'+c+';border-color:'+c+';color:var(--ink)"':'')+'>'+esc(t.label)+'</button>';
+        }).join("")+'</div>'
+      + '<div class="hint">Verde é bom sinal, laranja indica sub-extração, vermelho indica sobre-extração. É isso que ajusta os cliques da próxima.</div></div>'
+    + '<label class="field"><div class="lab">Observação</div>'
+      + '<textarea rows="2" id="fNote" placeholder="Canalizou, leito irregular, moagem custosa…">'+esc(S.note)+'</textarea></label>'
+    + '<button class="btn wide solid" id="saveBtn" style="background:'+m.acc+'" data-a="save"'+(S.rating?"":" disabled")+'>'
+      + (S.rating?"Registrar extração":"Dê uma nota para registrar")+'</button></div>';
+}
+
+function viewBeans(){
+  const f=S.form;
+  const form = f.open ? '<div class="panel">'
+    + '<div class="eyebrow" style="color:var(--teal)">Novo café</div><div style="height:14px"></div>'
+    + '<label class="field"><div class="lab">Marca / torrefação</div><input type="text" id="nBrand" value="'+esc(f.brand)+'" placeholder="Ex.: Orfeu"></label>'
+    + '<label class="field"><div class="lab">Rótulo ou origem</div><input type="text" id="nName" value="'+esc(f.name)+'" placeholder="Ex.: Clássico, Mogiana"></label>'
+    + '<div class="field"><div class="lab">Torra</div>'+segHTML(ROASTS, f.roast, "roast")+'</div>'
+    + '<div class="grid2">'
+      + '<label class="field"><div class="lab">Processo</div><input type="text" id="nProc" value="'+esc(f.process)+'" placeholder="Natural, lavado…"></label>'
+      + '<label class="field"><div class="lab">Data de torra</div><input type="date" id="nDate" value="'+esc(f.roastDate)+'"></label></div>'
+    + '<div class="row"><button class="btn solid" style="flex:1;background:var(--teal)" data-a="beanSave">Salvar café</button>'
+      + (S.beans.length?'<button class="btn quiet" data-a="beanCancel">Cancelar</button>':'')+'</div></div>'
+    : '<button class="btn wide solid" style="background:var(--teal)" data-a="beanOpen">Cadastrar café</button>';
+
+  const list = S.beans.map(b=>{
+    const mine = S.brews.filter(x=>x.beanId===b.id);
+    let st="";
+    if(mine.length){
+      const avg = r1(mine.reduce((s,x)=>s+x.rating,0)/mine.length);
+      const best = mine.slice().sort((x,y)=>y.rating-x.rating)[0];
+      st = '<div style="font:500 12px var(--mono);color:var(--dim);margin-top:8px">'
+        + mine.length+' extraç'+(mine.length>1?"ões":"ão")+' · média '+avg
+        + ' · melhor '+best.clicks+' cliques no '+METHODS[best.method].short+'</div>';
+    }
+    const d = daysSince(b.roastDate);
+    return '<div class="panel"><div class="row" style="justify-content:space-between">'
+      + '<div style="flex:1"><div style="font:600 16px var(--sans)">'+esc(beanLabel(b))+'</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-top:4px">Torra '
+      + esc((ROASTS.find(r=>r.id===b.roast)||{label:""}).label.toLowerCase())
+      + (b.process?' · '+esc(b.process):'')+(d!==null?' · '+d+' dias de torra':'')+'</div>'+st+'</div>'
+      + '<button class="linkbtn" data-a="beanDel:'+b.id+'">Remover</button></div></div>';
+  }).join("");
+  return form + list;
+}
+
+function viewHistory(){
+  if(!S.brews.length){
+    return '<div class="panel empty"><h2>Sem extrações ainda</h2>'
+      + '<p>Prepare um café e dê uma nota no fim. A partir da segunda xícara o gráfico começa a mostrar para onde sua moagem está andando.</p></div>';
+  }
+  const rows = S.brews
+    .filter(b=> S.fMethod==="todos" || b.method===S.fMethod)
+    .filter(b=> S.fBean==="todos" || b.beanId===S.fBean)
+    .sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+  const line = rows.map(b=>({label:fmtDate(b.date), nota:b.rating, cliques:b.clicks}));
+  const pts  = rows.map(b=>({x:b.clicks, y:b.rating, c:METHODS[b.method].acc}));
+
+  const filters = '<div class="panel">'
+    + '<div class="field"><div class="lab">Método</div>'
+      + segHTML([{id:"todos",label:"Todos"}].concat(Object.values(METHODS).map(x=>({id:x.id,label:x.short,acc:x.acc}))), S.fMethod, "fmethod")+'</div>'
+    + '<label class="field" style="margin-bottom:0"><div class="lab">Café</div><select id="fBeanSel">'
+      + '<option value="todos">Todos os cafés</option>'
+      + S.beans.map(b=>'<option value="'+b.id+'"'+(S.fBean===b.id?" selected":"")+'>'+esc(beanLabel(b))+'</option>').join("")
+      + '</select></label></div>';
+
+  const charts = rows.length ? '<div class="panel"><div class="eyebrow">Nota e moagem ao longo do tempo</div>'
+      + '<div style="margin-top:14px">'+lineChart(line)+'</div>'
+      + '<div class="legend"><span style="color:var(--teal)">— nota</span><span style="color:var(--amber)">-- cliques</span></div></div>'
+    + '<div class="panel"><div class="eyebrow">Onde está o ponto doce</div>'
+      + '<p class="hint" style="margin:6px 0 10px">Cada ponto é uma xícara: cliques no eixo horizontal, nota no vertical.</p>'
+      + scatterChart(pts)+'</div>'
+    : '<div class="panel"><p class="hint" style="margin:0">Nenhuma extração com esses filtros.</p></div>';
+
+  const diary = '<div class="panel flush"><div style="padding:16px;border-bottom:1px solid var(--line)">'
+    + '<div class="eyebrow">Diário</div></div>'
+    + rows.slice().reverse().map(b=>{
+        const bn = S.beans.find(x=>x.id===b.beanId), mm = METHODS[b.method];
+        const tg = (b.tags||[]).map(t=> TAGMAP[t] ? '<span class="chip" style="color:'+tagColor(TAGMAP[t].dir)+'">'+esc(TAGMAP[t].label)+'</span>' : "").join("");
+        return '<div class="entry"><div class="head"><div style="font:600 14px var(--sans)">'+esc(beanLabel(bn))+'</div>'
+          + '<div style="font:700 15px var(--mono);color:'+mm.acc+'">'+b.rating+'/5</div></div>'
+          + '<div class="meta">'+fmtDate(b.date)+' · '+mm.short+' · '+b.clicks+' cliques · '+b.doseG+' g café · '
+          + b.outputG+' g '+(b.method==="espresso"?"na xícara":"água")
+          + (b.timeS?' · '+mmss(b.timeS):'')+' · 1:'+b.ratio+'</div>'
+          + (tg?'<div class="tags" style="margin-top:8px">'+tg+'</div>':'')
+          + (b.note?'<div class="note">'+esc(b.note)+'</div>':'')+'</div>';
+      }).join("")+'</div>';
+
+  const backup = '<div class="panel"><div class="eyebrow">Backup</div>'
+    + '<p class="hint" style="margin:8px 0 12px">Os dados ficam só neste navegador. Exporte de vez em quando, e importe ao trocar de aparelho.</p>'
+    + '<div class="row"><button class="btn" style="flex:1" data-a="export">Exportar JSON</button>'
+    + '<button class="btn" style="flex:1" data-a="import">Importar</button></div>'
+    + '<input type="file" id="fileIn" accept="application/json,.json" style="display:none"></div>';
+
+  return filters + charts + diary + backup;
+}
+
+/* ------------------------------------------------------------- render */
+function render(toTop){
+  $("#cnt").textContent = S.brews.length;
+  $("#app").innerHTML = S.tab==="brew" ? viewBrew() : S.tab==="beans" ? viewBeans() : viewHistory();
+  $("#tabs").innerHTML = [["brew","Preparar"],["beans","Cafés"],["history","Histórico"]]
+    .map(([id,l])=>'<button data-a="tab:'+id+'" class="'+(S.tab===id?"on":"")+'">'+l+'</button>').join("");
+  if(toTop) window.scrollTo({top:0});
+}
+
+function applySuggestion(){
+  const bean = S.beans.find(b=>b.id===S.beanId);
+  if(!bean) return;
+  const s = suggest(bean, S.methodId);
+  S.clicks=s.clicks; S.output=s.output; S.dose=s.dose; S.ratio=s.ratio;
+  S.seconds=0; stopTimer(); S.logging=false; S.rating=0; S.tags=[]; S.note="";
+}
+
+function refreshDial(){
+  const m=METHODS[S.methodId];
+  const bean=S.beans.find(b=>b.id===S.beanId);
+  $("#dial").innerHTML = dialSVG(S.clicks, m.acc, [m.min,m.max]);
+  $("#turns").textContent = turns(S.clicks);
+  const off = S.clicks - (bean ? suggest(bean,S.methodId).clicks : S.clicks);
+  $("#offLab").textContent = off ? ((off>0?"+"+off:off)+" do sugerido") : "";
+}
+
+/* -------------------------------------------------------------- timer */
+function startTimer(){
+  S.running=true; S.t0=Date.now()-S.seconds*1000;
+  S.tick=setInterval(()=>{
+    S.seconds=(Date.now()-S.t0)/1000;
+    const c=$("#clock"); if(c){
+      c.textContent=mmss(S.seconds);
+      const m=METHODS[S.methodId];
+      c.style.color = (S.seconds>=m.target[0] && S.seconds<=m.target[1]) ? m.acc : "var(--text)";
+    }
+    const st=$("#stages"); if(st) st.innerHTML=stagesHTML();
+  },250);
+}
+function stopTimer(){ S.running=false; if(S.tick){ clearInterval(S.tick); S.tick=null; } }
+
+/* ------------------------------------------------------------- ações */
+document.addEventListener("click", e=>{
+  const el = e.target.closest("[data-a]"); if(!el) return;
+  const [act,arg] = el.getAttribute("data-a").split(":");
+
+  if(act==="tab"){ stopTimer(); S.tab=arg; render(true); return; }
+
+  if(act==="method"){ S.methodId=arg; applySuggestion(); render(true); return; }
+
+  if(act==="clicks"){ S.clicks=clamp(S.clicks+Number(arg),0,DIAL_MAX); refreshDial(); return; }
+
+  if(act==="timer"){ S.running ? stopTimer() : startTimer(); render(); return; }
+  if(act==="reset"){ stopTimer(); S.seconds=0; render(); return; }
+  if(act==="log"){ stopTimer(); S.logging=!S.logging; render(); return; }
+
+  if(act==="rate"){
+    S.rating=Number(arg);
+    const m=METHODS[S.methodId];
+    document.querySelectorAll("#rate button").forEach(b=>{
+      const on = Number(b.dataset.n)<=S.rating;
+      b.setAttribute("style", on ? "background:"+m.acc+";border-color:"+m.acc+";color:var(--ink)" : "");
+    });
+    const sb=$("#saveBtn"); if(sb){ sb.disabled=false; sb.textContent="Registrar extração"; }
+    return;
+  }
+  if(act==="tag"){
+    const i=S.tags.indexOf(arg); i>=0 ? S.tags.splice(i,1) : S.tags.push(arg);
+    const on=i<0, c=el.dataset.c;
+    el.setAttribute("style", on ? "background:"+c+";border-color:"+c+";color:var(--ink)" : "");
+    return;
+  }
+  if(act==="save"){
+    if(!S.rating) return;
+    const nt=$("#fNote"); if(nt) S.note=nt.value;
+    S.brews.unshift({
+      id:uid(), beanId:S.beanId, method:S.methodId, clicks:S.clicks,
+      outputG:num(S.output), doseG:num(S.dose), ratio:num(S.ratio),
+      timeS:Math.round(S.seconds), rating:S.rating, tags:S.tags.slice(),
+      note:S.note, date:new Date().toISOString()
+    });
+    save(); applySuggestion(); render(true);
+    flash("Extração registrada. A próxima sugestão já considera essa nota.");
+    return;
+  }
+
+  if(act==="roast"){ S.form.roast=arg; render(); return; }
+  if(act==="beanOpen"){ S.form.open=true; render(); return; }
+  if(act==="beanCancel"){ S.form.open=false; render(); return; }
+  if(act==="beanSave"){
+    const f=S.form;
+    if(!f.brand.trim()){ flash("Informe pelo menos a marca do café."); return; }
+    const b={id:uid(), brand:f.brand.trim(), name:f.name.trim(), roast:f.roast,
+             process:f.process.trim(), roastDate:f.roastDate, createdAt:new Date().toISOString()};
+    S.beans.unshift(b); S.beanId=b.id; save();
+    S.form={brand:"",name:"",roast:"media",process:"",roastDate:"",open:false};
+    applySuggestion(); render();
+    return;
+  }
+  if(act==="beanDel"){
+    const b=S.beans.find(x=>x.id===arg);
+    if(!confirm("Remover "+beanLabel(b)+" e todas as extrações desse café?")) return;
+    S.beans=S.beans.filter(x=>x.id!==arg);
+    S.brews=S.brews.filter(x=>x.beanId!==arg);
+    if(S.beanId===arg) S.beanId = S.beans[0] ? S.beans[0].id : null;
+    save(); applySuggestion(); render();
+    return;
+  }
+
+  if(act==="fmethod"){ S.fMethod=arg; render(); return; }
+  if(act==="export"){
+    const blob=new Blob([JSON.stringify({beans:S.beans,brews:S.brews},null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="bancada-"+new Date().toISOString().slice(0,10)+".json";
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    return;
+  }
+  if(act==="import"){ $("#fileIn").click(); return; }
+});
+
+document.addEventListener("change", e=>{
+  if(e.target.id==="beanSel"){ S.beanId=e.target.value; applySuggestion(); render(true); }
+  if(e.target.id==="fBeanSel"){ S.fBean=e.target.value; render(); }
+  if(e.target.id==="fileIn" && e.target.files[0]){
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        if(!Array.isArray(d.beans)||!Array.isArray(d.brews)) throw 0;
+        const ids=new Set(S.beans.map(b=>b.id));
+        d.beans.forEach(b=>{ if(!ids.has(b.id)) S.beans.push(b); });
+        const bids=new Set(S.brews.map(b=>b.id));
+        d.brews.forEach(b=>{ if(!bids.has(b.id)) S.brews.push(b); });
+        save(); render(); flash("Backup importado.");
+      }catch(err){ flash("Arquivo inválido."); }
+    };
+    r.readAsText(e.target.files[0]);
+  }
+});
+
+document.addEventListener("input", e=>{
+  const id=e.target.id, v=e.target.value;
+  if(id==="fOut"){
+    S.output=v;
+    const o=num(v), r=num(S.ratio);
+    if(o>0&&r>0){ S.dose=r1(o/r); const d=$("#fDose"); if(d) d.value=S.dose; }
+    const st=$("#stages"); if(st) st.innerHTML=stagesHTML();
+  }
+  else if(id==="fDose"){
+    S.dose=v;
+    const o=num(S.output), d=num(v);
+    if(o>0&&d>0){ S.ratio=r1(o/d); const r=$("#fRatio"); if(r) r.value=S.ratio; }
+    const st=$("#stages"); if(st) st.innerHTML=stagesHTML();
+  }
+  else if(id==="fRatio"){
+    S.ratio=v;
+    const o=num(S.output), r=num(v);
+    if(o>0&&r>0){ S.dose=r1(o/r); const d=$("#fDose"); if(d) d.value=S.dose; }
+  }
+  else if(id==="fNote") S.note=v;
+  else if(id==="nBrand") S.form.brand=v;
+  else if(id==="nName") S.form.name=v;
+  else if(id==="nProc") S.form.process=v;
+  else if(id==="nDate") S.form.roastDate=v;
+});
+
+/* --------------------------------------------------------------- boot */
+load();
+if(S.beans.length) applySuggestion();
+render(true);
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
