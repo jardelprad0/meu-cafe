@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bancada — registro de café</title>
+<title>Meu Café — registro de extração</title>
 <meta name="theme-color" content="#100E0C">
 <meta name="description" content="Registro de extração de café com sugestão de moagem em cliques para moedor manual.">
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bancada">
+<meta name="apple-mobile-web-app-title" content="Meu Café">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="icon" href="./icon-192.png">
 <style>
@@ -116,7 +116,7 @@ nav.tabs button.on{color:var(--text); border-top-color:var(--teal);}
 <body>
 <header class="top">
   <div>
-    <div class="brand">BANCADA</div>
+    <div class="brand">MEU CAFÉ</div>
     <div class="sub">Registro de extração · moedor manual</div>
   </div>
   <div>
@@ -657,7 +657,7 @@ document.addEventListener("click", e=>{
     const blob=new Blob([JSON.stringify({beans:S.beans,brews:S.brews},null,2)],{type:"application/json"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
-    a.download="bancada-"+new Date().toISOString().slice(0,10)+".json";
+    a.download="meu-cafe-"+new Date().toISOString().slice(0,10)+".json";
     a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     return;
   }

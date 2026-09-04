@@ -1,6 +1,6 @@
 {
-  "name": "Bancada — registro de café",
-  "short_name": "Bancada",
+  "name": "Meu Café — registro de extração",
+  "short_name": "Meu Café",
   "description": "Registro de extração de café com sugestão de moagem em cliques.",
   "start_url": "./",
   "scope": "./",

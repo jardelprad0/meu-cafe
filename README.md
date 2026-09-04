@@ -1,4 +1,6 @@
-# Bancada — registro de café
+# Meu Café — registro de extração
+
+No ar em **[jardelprad0.github.io/meu-cafe](https://jardelprad0.github.io/meu-cafe/)**
 
 App de página única para registrar extrações de café e receber sugestão de moagem
 em cliques de moedor manual (12 cliques por volta, padrão do iCoffee M3 Pro).
@@ -18,22 +20,16 @@ Histórico para backup e troca de aparelho.
 | `sw.js` | service worker: faz o app abrir mesmo sem internet |
 | `icon-*.png` | ícones |
 
-## Publicar no GitHub Pages
+## Publicação
 
-1. Crie um repositório novo, por exemplo `bancada-cafe`.
-2. Envie todos os arquivos desta pasta para a raiz do repositório
-   (pelo site do GitHub: **Add file › Upload files**, arraste tudo, **Commit**).
-3. No repositório: **Settings › Pages**.
-4. Em *Source*, escolha **Deploy from a branch**; branch `main`, pasta `/ (root)`. Salve.
-5. Aguarde um ou dois minutos. O endereço será
-   `https://SEU-USUARIO.github.io/bancada-cafe/`.
-
-O repositório pode ser público ou privado — no plano gratuito, o Pages exige
-repositório público.
+Já está publicado pelo GitHub Pages, servindo a branch `main` a partir da raiz
+(**Settings › Pages**). Todo `git push` para `main` republica em um ou dois
+minutos.
 
 ## Instalar no iPhone
 
-1. Abra o endereço acima **no Safari** (não funciona pelo Chrome no iOS).
+1. Abra [jardelprad0.github.io/meu-cafe](https://jardelprad0.github.io/meu-cafe/)
+   **no Safari** (não funciona pelo Chrome no iOS).
 2. Toque no botão de compartilhar (o quadrado com a seta para cima).
 3. Escolha **Adicionar à Tela de Início**.
 4. Confirme. O ícone aparece junto dos outros apps e abre em tela cheia, sem
