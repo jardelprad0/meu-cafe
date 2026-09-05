@@ -43,7 +43,7 @@ JSON exportado, então o arquivo de backup cresce com elas.
 | --- | --- |
 | `index.html` | o app inteiro (HTML, CSS e JS, sem dependências externas) |
 | `manifest.webmanifest` | metadados para instalar como app |
-| `sw.js` | service worker: faz o app abrir mesmo sem internet |
+| `sw.js` | service worker: faz o app abrir sem internet e buscar versão nova quando há |
 | `icon-*.png` | ícones |
 
 ## Layout
@@ -93,7 +93,17 @@ Os cliques por volta do moedor não ficam mais no código — são ajustados em
 
 ## Publicar uma mudança
 
-O `sw.js` serve tudo do cache primeiro, então **toda mudança no `index.html`
-precisa de um bump na constante `CACHE`** (`meu-cafe-v2` → `v3`, e assim por
-diante). Sem isso o app já instalado continua abrindo a versão antiga
-indefinidamente. Depois é só `git push` para `main`.
+`git push` para `main`. Só isso — o app instalado pega a versão nova na
+próxima abertura com internet.
+
+O `sw.js` usa duas estratégias, porque as duas coisas envelhecem diferente:
+
+- **HTML** — rede primeiro, cache como reserva. Como o app inteiro vive no
+  `index.html`, é isso que faz uma versão publicada chegar sozinha. A busca na
+  rede tem prazo de 3,5 s; estourou, serve o cache, para conexão ruim não
+  segurar a abertura.
+- **Ícones e manifest** — cache primeiro. Não mudam, e ler do disco é
+  instantâneo.
+
+A constante `CACHE` continua ali, mas agora **bumpar é opcional**: serve para
+descartar estáticos antigos, não para entregar código novo.
